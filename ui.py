@@ -11,11 +11,12 @@ SCORE_FONT = ("Arial", 14, "normal")
 class QuizInterface:
     def __init__(self, quiz_brain: QuizBrain):
         self.quiz = quiz_brain
+        self.score = 0
         self.window = Tk()
         self.window.title("Quiz Game")
         self.window.config(padx=20, pady=20, bg=THEME_COLOR)
 
-        self.score_lbl = Label(text="Score: 0", font=SCORE_FONT, fg="white", bg=THEME_COLOR)
+        self.score_lbl = Label(text=f"Score: {self.score}", font=SCORE_FONT, fg="white", bg=THEME_COLOR)
         self.score_lbl.grid(column=1, row=0)
 
         self.canvas = Canvas(width=400, height=350, bg="white", highlightthickness=0)
@@ -36,8 +37,13 @@ class QuizInterface:
 
     def get_next_q(self):
         self.canvas.config(bg="white")
-        q_text = self.quiz.next_question()
-        self.canvas.itemconfig(self.question_text, text=q_text)
+        if self.quiz.still_has_questions():
+            q_text = self.quiz.next_question()
+            self.canvas.itemconfig(self.question_text, text=q_text)
+        else:
+            self.canvas.itemconfig(self.question_text, text="You have reached the end of the quiz!")
+            self.true_btn.config(state="disabled")
+            self.false_btn.config(state="disabled")
 
     def submit_true(self):
         is_correct = self.quiz.check_answer("True")
@@ -50,6 +56,8 @@ class QuizInterface:
     def give_feedback(self, is_correct):
         if is_correct:
             self.canvas.config(bg=CORRECT_COLOR)
+            self.score += 1
+            self.score_lbl.config(text=f"Score: {self.score}")
         else:
             self.canvas.config(bg=INCORRECT_COLOR)
         self.window.after(1000, self.get_next_q)
